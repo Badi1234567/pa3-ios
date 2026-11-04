@@ -1,0 +1,32 @@
+workflows:
+  p4-event-planner:
+    name: P4 Event Planner (Simulator)
+    max_build_duration: 30
+    instance_type: mac_mini_m2
+    environment:
+      xcode: latest
+    scripts:
+      - name: Instalar XcodeGen
+        script: brew install xcodegen
+      - name: Generar proyecto Xcode
+        script: |
+          cd P4-EventPlanner
+          xcodegen generate
+      - name: Compilar para simulador
+        script: |
+          cd P4-EventPlanner
+          xcodebuild build \
+            -project EventPlanner.xcodeproj \
+            -scheme EventPlanner \
+            -sdk iphonesimulator \
+            -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build \
+            ARCHS="arm64 x86_64" ONLY_ACTIVE_ARCH=NO \
+            CODE_SIGNING_ALLOWED=NO
+      - name: Empaquetar .app en zip
+        script: |
+          cd P4-EventPlanner/build/Build/Products/Debug-iphonesimulator
+          ditto -c -k --sequesterRsrc --keepParent EventPlanner.app $CM_BUILD_DIR/EventPlanner.zip
+    artifacts:
+      - EventPlanner.zip
