@@ -30,3 +30,65 @@ workflows:
           ditto -c -k --sequesterRsrc --keepParent EventPlanner.app $CM_BUILD_DIR/EventPlanner.zip
     artifacts:
       - EventPlanner.zip
+  p5-movie-explorer:
+    name: P5 Movie Explorer (Simulator)
+    max_build_duration: 30
+    instance_type: mac_mini_m2
+    environment:
+      xcode: latest
+    scripts:
+      - name: Instalar XcodeGen
+        script: brew install xcodegen
+      - name: Generar proyecto Xcode
+        script: |
+          cd P5-MovieExplorer
+          xcodegen generate
+      - name: Compilar para simulador
+        script: |
+          cd P5-MovieExplorer
+          xcodebuild build \
+            -project MovieExplorer.xcodeproj \
+            -scheme MovieExplorer \
+            -sdk iphonesimulator \
+            -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build \
+            ARCHS="arm64 x86_64" ONLY_ACTIVE_ARCH=NO \
+            CODE_SIGNING_ALLOWED=NO
+      - name: Empaquetar .app en zip
+        script: |
+          cd P5-MovieExplorer/build/Build/Products/Debug-iphonesimulator
+          ditto -c -k --sequesterRsrc --keepParent MovieExplorer.app $CM_BUILD_DIR/MovieExplorer.zip
+    artifacts:
+      - MovieExplorer.zip
+  p6-lifestyle-hub:
+    name: P6 My Lifestyle Hub (Simulator)
+    max_build_duration: 30
+    instance_type: mac_mini_m2
+    environment:
+      xcode: latest
+    scripts:
+      - name: Instalar XcodeGen
+        script: brew install xcodegen
+      - name: Generar proyecto Xcode
+        script: |
+          cd P6-LifestyleHub
+          xcodegen generate
+      - name: Compilar para simulador
+        script: |
+          cd P6-LifestyleHub
+          xcodebuild build \
+            -project LifestyleHub.xcodeproj \
+            -scheme LifestyleHub \
+            -sdk iphonesimulator \
+            -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build \
+            ARCHS="arm64 x86_64" ONLY_ACTIVE_ARCH=NO \
+            CODE_SIGNING_ALLOWED=NO
+      - name: Empaquetar .app en zip
+        script: |
+          cd P6-LifestyleHub/build/Build/Products/Debug-iphonesimulator
+          ditto -c -k --sequesterRsrc --keepParent LifestyleHub.app $CM_BUILD_DIR/LifestyleHub.zip
+    artifacts:
+      - LifestyleHub.zip
