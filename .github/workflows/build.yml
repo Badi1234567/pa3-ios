@@ -1,0 +1,51 @@
+name: Build iOS (Simulator)
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - folder: P4-EventPlanner
+            app: EventPlanner
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar XcodeGen
+        run: brew install xcodegen
+
+      - name: Versión de Xcode
+        run: xcodebuild -version
+
+      - name: Generar proyecto Xcode
+        working-directory: ${{ matrix.folder }}
+        run: xcodegen generate
+
+      - name: Compilar para simulador
+        working-directory: ${{ matrix.folder }}
+        run: |
+          set -o pipefail
+          xcodebuild build \
+            -project ${{ matrix.app }}.xcodeproj \
+            -scheme ${{ matrix.app }} \
+            -sdk iphonesimulator \
+            -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build \
+            ARCHS="arm64 x86_64" ONLY_ACTIVE_ARCH=NO \
+            CODE_SIGNING_ALLOWED=NO | tee build.log
+
+      - name: Empaquetar .app en zip
+        working-directory: ${{ matrix.folder }}/build/Build/Products/Debug-iphonesimulator
+        run: ditto -c -k --sequesterRsrc --keepParent ${{ matrix.app }}.app $GITHUB_WORKSPACE/${{ matrix.app }}.zip
+
+      - name: Subir artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.app }}
+          path: ${{ matrix.app }}.zip
