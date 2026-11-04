@@ -12,7 +12,6 @@ final class MovieListViewModel {
     }
 
     private let service: MovieServicing
-    private let termino = "star"
 
     private(set) var estado: Estado = .inicial
     private(set) var peliculas: [Movie] = []
@@ -25,11 +24,11 @@ final class MovieListViewModel {
         return peliculas.filter {
             $0.titulo.localizedCaseInsensitiveContains(texto) ||
             $0.genero.localizedCaseInsensitiveContains(texto) ||
-            $0.director.localizedCaseInsensitiveContains(texto)
+            $0.canal.localizedCaseInsensitiveContains(texto)
         }
     }
 
-    init(service: MovieServicing = ITunesMovieService()) {
+    init(service: MovieServicing = TVMazeMovieService()) {
         self.service = service
     }
 
@@ -38,7 +37,7 @@ final class MovieListViewModel {
         do {
             // Pequeña pausa para que la pantalla de carga sea visible
             try await Task.sleep(for: .milliseconds(2500))
-            peliculas = try await service.fetchMovies(term: termino, simularError: simularError)
+            peliculas = try await service.fetchMovies(simularError: simularError)
             estado = .cargado
         } catch {
             peliculas = []

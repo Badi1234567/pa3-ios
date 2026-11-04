@@ -16,10 +16,10 @@ struct MovieDetailView: View {
                 HStack(spacing: 8) {
                     Etiqueta(texto: movie.anio)
                     Etiqueta(texto: movie.genero)
-                    Etiqueta(texto: movie.clasificacion)
+                    Etiqueta(texto: movie.rating)
                 }
 
-                Label(movie.director, systemImage: "person.fill")
+                Label(movie.canal, systemImage: "tv")
                     .foregroundStyle(.secondary)
 
                 Text(movie.descripcion)

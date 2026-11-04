@@ -6,7 +6,7 @@ struct LoadingStateView: View {
         VStack(spacing: 16) {
             ProgressView()
                 .controlSize(.large)
-            Text("Cargando películas…")
+            Text("Cargando títulos…")
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

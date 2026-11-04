@@ -1,7 +1,7 @@
 import Foundation
 
 protocol MovieServicing {
-    func fetchMovies(term: String, simularError: Bool) async throws -> [Movie]
+    func fetchMovies(simularError: Bool) async throws -> [Movie]
 }
 
 enum MovieServiceError: LocalizedError {
@@ -16,38 +16,30 @@ enum MovieServiceError: LocalizedError {
     }
 }
 
-/// Consume la API pública de iTunes Search (no requiere API key)
-final class ITunesMovieService: MovieServicing {
+/// Consume la API REST pública de TVMaze (no requiere API key)
+final class TVMazeMovieService: MovieServicing {
     private let session: URLSession
+    private let url = URL(string: "https://api.tvmaze.com/shows?page=0")!
 
     init(session: URLSession = .shared) {
         self.session = session
     }
 
-    func fetchMovies(term: String, simularError: Bool = false) async throws -> [Movie] {
+    func fetchMovies(simularError: Bool = false) async throws -> [Movie] {
         if simularError {
             // Para la evidencia del estado de error
             throw URLError(.notConnectedToInternet)
         }
 
-        var components = URLComponents(string: "https://itunes.apple.com/search")!
-        components.queryItems = [
-            URLQueryItem(name: "term", value: term),
-            URLQueryItem(name: "media", value: "movie"),
-            URLQueryItem(name: "entity", value: "movie"),
-            URLQueryItem(name: "limit", value: "100"),
-            URLQueryItem(name: "country", value: "us")
-        ]
-
-        let (data, response) = try await session.data(from: components.url!)
+        let (data, response) = try await session.data(from: url)
 
         if let http = response as? HTTPURLResponse, !(200..<300).contains(http.statusCode) {
             throw MovieServiceError.respuestaInvalida(http.statusCode)
         }
 
         do {
-            let decoded = try JSONDecoder().decode(SearchResponseDTO.self, from: data)
-            return decoded.results.compactMap(Movie.init(dto:))
+            let shows = try JSONDecoder().decode([ShowDTO].self, from: data)
+            return shows.map(Movie.init(dto:))
         } catch {
             throw MovieServiceError.decodificacion
         }

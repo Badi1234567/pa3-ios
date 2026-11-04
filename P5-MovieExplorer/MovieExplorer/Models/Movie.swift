@@ -1,46 +1,51 @@
 import Foundation
 
-/// Respuesta JSON de la API de iTunes Search
-struct SearchResponseDTO: Codable {
-    let resultCount: Int
-    let results: [MovieDTO]
-}
+/// DTO: refleja el JSON de TVMaze (https://api.tvmaze.com/shows)
+struct ShowDTO: Codable {
+    let id: Int
+    let name: String
+    let genres: [String]?
+    let premiered: String?
+    let summary: String?
+    let image: ImageDTO?
+    let network: CanalDTO?
+    let webChannel: CanalDTO?
+    let rating: RatingDTO?
 
-/// DTO: refleja exactamente el JSON (campos opcionales para no romper el decode)
-struct MovieDTO: Codable {
-    let trackId: Int?
-    let trackName: String?
-    let artistName: String?
-    let primaryGenreName: String?
-    let releaseDate: String?
-    let artworkUrl100: String?
-    let longDescription: String?
-    let contentAdvisoryRating: String?
+    struct ImageDTO: Codable {
+        let medium: String?
+        let original: String?
+    }
+    struct CanalDTO: Codable {
+        let name: String?
+    }
+    struct RatingDTO: Codable {
+        let average: Double?
+    }
 }
 
 /// Modelo que usa la UI
 struct Movie: Identifiable, Hashable {
     let id: Int
     let titulo: String
-    let director: String
+    let canal: String
     let genero: String
     let anio: String
     let posterURL: URL?
     let descripcion: String
-    let clasificacion: String
+    let rating: String
 
-    init?(dto: MovieDTO) {
-        guard let id = dto.trackId, let titulo = dto.trackName else { return nil }
-        self.id = id
-        self.titulo = titulo
-        self.director = dto.artistName ?? "Desconocido"
-        self.genero = dto.primaryGenreName ?? "Sin género"
-        self.anio = String((dto.releaseDate ?? "").prefix(4))
-        // iTunes entrega 100x100; pedimos una versión más grande
-        self.posterURL = dto.artworkUrl100
-            .map { $0.replacingOccurrences(of: "100x100bb", with: "400x600bb") }
-            .flatMap(URL.init(string:))
-        self.descripcion = dto.longDescription ?? "Sin descripción disponible."
-        self.clasificacion = dto.contentAdvisoryRating ?? "NR"
+    init(dto: ShowDTO) {
+        self.id = dto.id
+        self.titulo = dto.name
+        self.canal = dto.network?.name ?? dto.webChannel?.name ?? "Desconocido"
+        self.genero = dto.genres?.first ?? "Sin género"
+        self.anio = String((dto.premiered ?? "").prefix(4))
+        self.posterURL = (dto.image?.medium ?? dto.image?.original).flatMap(URL.init(string:))
+        // El resumen viene con etiquetas HTML (<p>, <b>): se limpian
+        let texto = (dto.summary ?? "Sin descripción disponible.")
+            .replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
+        self.descripcion = texto
+        self.rating = dto.rating?.average.map { String(format: "★ %.1f", $0) } ?? "★ –"
     }
 }

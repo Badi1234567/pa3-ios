@@ -10,7 +10,7 @@ struct MovieGridView: View {
         NavigationStack {
             contenido
                 .navigationTitle("Movie Explorer")
-                .searchable(text: $viewModel.textoBusqueda, prompt: "Buscar por título, género o director")
+                .searchable(text: $viewModel.textoBusqueda, prompt: "Buscar por título, género o canal")
                 .navigationDestination(for: Movie.self) { movie in
                     MovieDetailView(movie: movie)
                 }
@@ -54,7 +54,7 @@ struct MovieGridView: View {
                 EmptyStateView(busqueda: viewModel.textoBusqueda)
             } else {
                 ScrollView {
-                    Text("\(viewModel.peliculasFiltradas.count) películas")
+                    Text("\(viewModel.peliculasFiltradas.count) títulos")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity, alignment: .leading)
